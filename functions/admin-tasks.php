@@ -275,7 +275,10 @@ function codeable_tasks_callback() {
 		data-age="{{{ staleHours }}}"
 	>
 		<td class="col-client">
+			<span class="tooltip right autosize" tabindex="0">
 				<div class="tooltip-text">{{{ data.client_name }}}<br />{{{ clientTime.toLocaleTimeString() }}} <small>{{{ tzFull }}}</small></div>
+				<img src="{{{ data.avatar }}}" />
+			</span>
 		</td>
 		<td class="col-activity">
 			<# if ( data.last_activity > 0 ) { #>
