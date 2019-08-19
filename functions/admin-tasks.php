@@ -240,7 +240,7 @@ function codeable_tasks_callback() {
 					<th class="col-title"><?php esc_html_e( 'Title', 'wpcable' ); ?></th>
 					<th class="col-notes"><?php esc_html_e( 'Notes', 'wpcable' ); ?></th>
 				</tr>
-			</thead>
+			</thead>sleep
 			<tbody class="task-list"></tbody>
 		</table>
 		<div class="notes-editor-layer" style="display:none">
@@ -256,7 +256,19 @@ function codeable_tasks_callback() {
 		<?php codeable_last_fetch_info(); ?>
 	</div>
 	<script type="text/html" id="tmpl-list-item">
-	<# var staleHours = parseInt(((new Date() / 1000) - data.last_activity) / 3600); #>
+	<#
+	var staleHours = parseInt(((new Date() / 1000) - data.last_activity) / 3600);
+	var tzOffset   = data.client_timezone - new Date().getTimezoneOffset();
+	var tzFull     = 'UTC ';
+	var clientTime = new Date();
+
+	if ( data.client_timezone ) {
+		var tzHrs = Math.abs( Math.floor( data.client_timezone / 60 ) );
+		var tzMin = ('00' + (data.client_timezone % 60)).substr( -2 );
+		tzFull    += (data.client_timezone > 0 ? '+' : '-') + tzHrs + ':' + tzMin;
+	}
+	clientTime.setTime( clientTime.getTime() - (tzOffset * 60 * 1000) );
+	#>
 	<tr
 		class="list-item state-{{{ data.state }}}<# if (data.preferred ) { #> task-preferred<# } #><# if ( data.hidden ) { #> task-hidden<# } #><# if (data.subscribed ) { #> task-subscribed<# } #><# if (data.favored ) { #> task-favored<# } #><# if (data.promoted ) { #> task-promoted<# } #><# if ( data.flag ) { #> flag-{{{ data.flag }}}<# } #><# if ( data.last_activity > 0 ) { #> age-<# if ( staleHours < 4 ) { #>current<# } else if ( staleHours < 24 ) { #>today<# } else if ( staleHours < 48 ) { #>yesterday<# } else if ( staleHours < 168 ) { #>week<# } else if ( staleHours < 336 ) { #>2weeks<# } else { #>older<# } } #>"
 		id="task-{{{ data.task_id }}}"
@@ -264,7 +276,7 @@ function codeable_tasks_callback() {
 	>
 		<td class="col-client">
 			<span class="tooltip right autosize" tabindex="0">
-				<div class="tooltip-text">{{{ data.client_name }}}</div>
+				<div class="tooltip-text">{{{ data.client_name }}}<br />{{{ clientTime.toLocaleTimeString() }}} <small>{{{ tzFull }}}</small></div>
 				<img src="{{{ data.avatar }}}" />
 			</span>
 		</td>

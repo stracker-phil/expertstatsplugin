@@ -193,7 +193,7 @@ function codeable_page_requires_login( $page_title ) {
 
 	?>
 	<div class="wrap">
-		<h1><?php echo $pag_titlee; ?></h1>
+		<h1><?php echo $page_title; ?></h1>
 
 		<div class="notice error">
 			<p>

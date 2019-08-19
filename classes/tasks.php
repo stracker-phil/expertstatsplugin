@@ -43,7 +43,8 @@ class wpcable_tasks {
 			SELECT
 				task.*,
 				client.full_name AS `client_name`,
-				client.medium AS `avatar`
+				client.medium AS `avatar`,
+				client.timezone_offset AS `client_timezone`
 			FROM
 				`{$this->tables['tasks']}` AS task
 			INNER JOIN `{$this->tables['clients']}` AS client
@@ -69,17 +70,18 @@ class wpcable_tasks {
 	public function sanitize_task( $task ) {
 		date_default_timezone_set( get_option( 'timezone_string' ) );
 
-		$task['estimate']      = (bool) $task['estimate'];
-		$task['hidden']        = (bool) $task['hidden'];
-		$task['promoted']      = (bool) $task['promoted'];
-		$task['subscribed']    = (bool) $task['subscribed'];
-		$task['favored']       = (bool) $task['favored'];
-		$task['preferred']     = (bool) $task['preferred'];
-		$task['client_fee']    = (float) $task['client_fee'];
-		$task['value']         = (float) $task['value'];
-		$task['value_client']  = (float) $task['value_client'];
-		$task['last_activity'] = (int) $task['last_activity'];
-		$task['last_sync']     = (int) $task['last_sync'];
+		$task['estimate']        = (bool) $task['estimate'];
+		$task['hidden']          = (bool) $task['hidden'];
+		$task['promoted']        = (bool) $task['promoted'];
+		$task['subscribed']      = (bool) $task['subscribed'];
+		$task['favored']         = (bool) $task['favored'];
+		$task['preferred']       = (bool) $task['preferred'];
+		$task['client_fee']      = (float) $task['client_fee'];
+		$task['value']           = (float) $task['value'];
+		$task['value_client']    = (float) $task['value_client'];
+		$task['last_activity']   = (int) $task['last_activity'];
+		$task['last_sync']       = (int) $task['last_sync'];
+		$task['client_timezone'] = (int) $task['client_timezone'];
 
 		$task['last_activity_date'] = date_i18n(
 			get_option( 'date_format' ),
