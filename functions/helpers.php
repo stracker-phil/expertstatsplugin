@@ -119,9 +119,10 @@ function codeable_ssl_warning() {
 }
 
 /**
+ * @return bool
+ * @deprecated
  * Check if an PHP Timout warning should be displayed.
  *
- * @return bool
  */
 function codeable_timeout_warning() {
 	$timeout = ini_get( 'max_execution_time' );
@@ -170,14 +171,6 @@ function codeable_admin_notices() {
 		?>
 		<div class="update-nag notice">
 			<p><?php _e( 'Please consider installing this plugin on a secure website', 'wpcable' ); ?></p>
-		</div>
-		<?php
-	endif;
-
-	if ( codeable_timeout_warning() ) :
-		?>
-		<div class="update-nag notice">
-			<p><?php _e( 'Be sure that you set PHP timeout to 120 or more on your first fetch or if you have deleted the cached data', 'wpcable' ); ?></p>
 		</div>
 		<?php
 	endif;

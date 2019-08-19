@@ -275,10 +275,7 @@ function codeable_tasks_callback() {
 		data-age="{{{ staleHours }}}"
 	>
 		<td class="col-client">
-			<span class="tooltip right autosize" tabindex="0">
 				<div class="tooltip-text">{{{ data.client_name }}}<br />{{{ clientTime.toLocaleTimeString() }}} <small>{{{ tzFull }}}</small></div>
-				<img src="{{{ data.avatar }}}" />
-			</span>
 		</td>
 		<td class="col-activity">
 			<# if ( data.last_activity > 0 ) { #>
@@ -320,7 +317,7 @@ function codeable_tasks_callback() {
 		</td>
 		<td class="col-title">
 			<div>
-				<span class="task-title">{{{ data.title }}}</span>
+				<span class="task-title"><a href="https://app.codeable.io/tasks/{{{ data.task_id }}}" target="_blank">{{{ data.title }}}</a></span>
 				<span class="task-flags">
 				<# if ( data.preferred ) { #>
 					<span class="tooltip bottom small autosize" tabindex="0">
@@ -336,7 +333,7 @@ function codeable_tasks_callback() {
 				<# } #>
 				<# if ( data.favored ) { #>
 					<span class="tooltip bottom small autosize" tabindex="0">
-						<span class="tooltip-text"><?php esc_html_e( 'Favored', 'wpcable' ); ?></span>
+						<span class="tooltip-text"><?php esc_html_e( 'Favorited', 'wpcable' ); ?></span>
 						️❤️
 					</span>
 				<# } #>

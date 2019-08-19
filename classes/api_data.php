@@ -294,6 +294,15 @@ class wpcable_api_data {
 					$tr['credit_amounts'],
 					$tr['debit_amounts']
 				);
+
+				// If we find a transaction that already exists, bail out and don't continue updating all the transactions
+				if ( $exists ) {
+					update_option( 'wpcable_average', $single_page['average_task_size'] );
+					update_option( 'wpcable_balance', $single_page['balance'] );
+					update_option( 'wpcable_revenue', $single_page['revenue'] );
+					return false;
+				}
+
 			}
 
 			return $page + 1;
@@ -400,16 +409,30 @@ class wpcable_api_data {
 				} elseif ( ! empty( $task['last_event']['object']['published_at'] ) ) {
 					$new_task['last_activity'] = (int) $task['last_event']['object']['published_at'];
 					$new_task['last_activity_by'] = '';
+				}elseif ( ! empty( $task['last_event']['object']['created_at'] ) ) {
+					$new_task['last_activity'] = (int) strtotime($task['last_event']['object']['created_at']);
+					$new_task['last_activity_by'] = '';
+				}
+				elseif ( ! empty( $task['last_event']['object']['updated_at'] ) ) {
+					$new_task['last_activity'] = (int) strtotime($task['last_event']['object']['updated_at']);
+					$new_task['last_activity_by'] = '';
 				}
 
+
 				if ( ! empty( $task['last_event']['user']['full_name'] ) ) {
+					$new_task['last_activity_by'] = $task['last_event']['user']['full_name'];
+				}
+
+				if ( ! empty( $task['last_event']['type']) && 'create_vault' === $task['last_event']['type']) {
+					$new_task['last_activity'] = (int) strtotime($task['last_event']['user']['last_sign_in_at']);
 					$new_task['last_activity_by'] = $task['last_event']['user']['full_name'];
 				}
 
 				// Some simple rules to automatically detect the correct flag for tasks.
 				if ( 'canceled' === $task['state'] ) {
 					// Tasks that were canceled by the client obviously are lost.
-					$new_task['flag'] = 'lost';
+					$new_task['flag']          = 'lost';
+					$new_task['last_activity'] = (int) strtotime( $task['published_at'] );
 				} elseif ( $new_task['hidden'] ) {
 					// Tasks that I hide from my Codeable list are "lost for us".
 					$new_task['flag'] = 'lost';
@@ -426,8 +449,9 @@ class wpcable_api_data {
 					}
 				} elseif ( empty( $new_task['last_activity'] ) ) {
 					// This workroom is private for another expert = possibly lost.
-					if ( in_array( $task['state'], [ 'hired', 'completed', 'refunded' ], true ) ) {
-						$new_task['flag'] = 'lost';
+					if ( in_array( $task['state'], [ 'hired', 'completed', 'refunded', 'paid' ], true ) ) {
+						$new_task['flag']          = 'lost';
+						$new_task['last_activity'] = (int) strtotime( $task['published_at'] );
 					}
 				}
 
