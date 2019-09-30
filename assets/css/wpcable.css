@@ -544,10 +544,17 @@ div#TB_window {
 	font-weight: bold;
 	cursor: default;
 	text-align: right;
+	color: inherit;
 }
 
 .estimate-row .field {
-	margin-top: 6px;
+	padding: 4px 10px;
+    margin: 2px -12px;
+}
+
+.estimate-row .field.field-highlight {
+	background: #007FBB08;
+	color: #007FBB;
 }
 
 .estimate-row .description {

@@ -11,6 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 function codeable_estimate_callback() {
 	$rate           = (float) get_option( 'wpcable_rate', 80 );
 	$fee_type       = get_option( 'wpcable_fee_type', 'client' );
+	$do_round       = (bool) get_option( 'wpcable_round_estimate', 0 );
 	$fee_contractor = 10;
 	$fee_client     = 17.5;
 
@@ -47,6 +48,11 @@ function codeable_estimate_callback() {
 							<span class="label">Pessimistic estimate: </span><input id="pessimistic_estimate" type="number" step="0.25" min="0.25" value="1" /> hours
 							<small><em>(scope changes, bad communication, technical issues, ...)</em></small>
 						</div>
+						<hr />
+						<div class="field">
+							<span class="label">Pre-hire communication: </span><input id="prehire" type="number" class="calc-input" step="0.25" min="0" value="0" /> hours
+							<small><em>(everything done until now)</em></small>
+						</div>
 					</div>
 				</div>
 
@@ -54,7 +60,7 @@ function codeable_estimate_callback() {
 					<h2 class="hndle">
 						<span>
 							Rate and Fees
-							<a href="<?php echo esc_url( admin_url( 'admin.php?page=codeable_settings' ) ); ?>"><?php esc_html_e( 'Change', 'wpcable' ); ?></a>
+							<a href="<?php echo esc_url( admin_url( 'admin.php?page=codeable_settings' ) ); ?>"><?php esc_html_e( 'Change defaults', 'wpcable' ); ?></a>
 						</span>
 					</h2>
 					<div class="inside">
@@ -82,6 +88,10 @@ function codeable_estimate_callback() {
 						<div class="field">
 							<span class="label">Client fee: </span><input id="client_fee" type="number" class="calc-input" step="0.01" value="<?php echo esc_attr( $fee_client ); ?>" max="100" min="0" /> % (depends on the client)
 						</div>
+						<div class="field">
+							<span class="label">Round values: </span><input type="checkbox" id="round_estimate" class="calc-input" <?php echo checked( $do_round ); ?> />
+						</div>
+
 					</div>
 				</div>
 			</div>
@@ -98,9 +108,12 @@ function codeable_estimate_callback() {
 							<span class="label">Standard Estimate: </span><input id="estimate_hours_standard" type="text" value="" readonly="readonly"/> hours
 						</div>
 						<div class="field">
-							<span class="label">Paid by the client: <br/><small>(including fees)</small></span><input id="payment" type="text" value="" readonly="readonly"/> $
+							<span class="label">With buffer and pre-hire: </span><input id="estimate_hours_standard_30" type="text" value="" readonly="readonly"/> hours
 						</div>
 						<div class="field">
+							<span class="label">Paid by the client: <br/><small>(including fees)</small></span><input id="payment" type="text" value="" readonly="readonly"/> $
+						</div>
+						<div class="field field-highlight">
 							<span class="label"><strong>Estimate</strong>: <br/><small>(what you enter in Codeable)</small></span><input id="estimate" type="text" value="" readonly="readonly"/> $
 						</div>
 						<div class="field">
@@ -120,9 +133,12 @@ function codeable_estimate_callback() {
 							<span class="label">Cautious Estimate: </span><input id="estimate_hours_pessimistic" type="text" value="" readonly="readonly"/> hours
 						</div>
 						<div class="field">
-							<span class="label">Paid by the client: <br/><small>(including fees)</small></span><input id="payment_pessimistic" type="text" value="" readonly="readonly"/> $
+							<span class="label">With buffer and pre-hire: </span><input id="estimate_hours_pessimistic_30" type="text" value="" readonly="readonly"/> hours
 						</div>
 						<div class="field">
+							<span class="label">Paid by the client: <br/><small>(including fees)</small></span><input id="payment_pessimistic" type="text" value="" readonly="readonly"/> $
+						</div>
+						<div class="field field-highlight">
 							<span class="label"><strong>Estimate</strong>: <br/><small>(what you enter in Codeable)</small></span><input id="estimate_pessimistic" type="text" value="" readonly="readonly"/> $
 						</div>
 						<div class="field">
@@ -138,12 +154,18 @@ function codeable_estimate_callback() {
 
 	<script type="text/javascript">
 		jQuery(document).ready(function($) {
+			var do_round = false;
+
 			function round(value, step) {
 				step || (step = 1.0);
 				var inv = 1.0 / step;
+				var fraction = do_round ? 0 : 2;
 
 				return (Math.round(value * inv) / inv)
-					.toLocaleString(false, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+					.toLocaleString(false, {
+						minimumFractionDigits: fraction,
+						maximumFractionDigits: fraction
+					});
 			}
 
 			function applyAllFees( value ) {
@@ -195,23 +217,41 @@ function codeable_estimate_callback() {
 				var hours   = Math.floor( time );
 				var minutes = parseInt((time - hours) * 60);
 
+				if ( do_round ) {
+					minutes = Math.round(minutes / 5) * 5;
+
+					if ( minutes > 59 ) {
+						hours++;
+						minutes = 0;
+					}
+				}
+
 				return hours + ':' + ('00' + minutes).substr( -2 );
 			}
 
 			function calculate() {
+				do_round = $('#round_estimate').prop('checked');
+
 				var optimistic  = parseFloat($('#optimistic_estimate').val());
 				var likely      = parseFloat($('#likely_estimate').val());
 				var pessimistic = parseFloat($('#pessimistic_estimate').val());
+				var prehire     = parseFloat($('#prehire').val());
 				var rate        = parseFloat($('#hourly_rate').val());
 
 				var estimate_hours_standard    = (optimistic + 4 * likely + pessimistic) / 6;
 				var estimate_hours_pessimistic = (optimistic + 2 * likely + 3 * pessimistic) / 6;
 
-				var estimate_standard    = estimate_hours_standard * rate;
-				var estimate_pessimistic = estimate_hours_pessimistic * rate;
+				var estimate_hours_standard_30    = estimate_hours_standard * 1.3 + prehire;
+				var estimate_hours_pessimistic_30 = estimate_hours_pessimistic * 1.3 + prehire;
+
+				var estimate_standard    = estimate_hours_standard_30 * rate;
+				var estimate_pessimistic = estimate_hours_pessimistic_30 * rate;
 
 				$('#estimate_hours_standard').val(showTime( estimate_hours_standard ));
 				$('#estimate_hours_pessimistic').val(showTime( estimate_hours_pessimistic ));
+
+				$('#estimate_hours_standard_30').val(showTime( estimate_hours_standard_30 ));
+				$('#estimate_hours_pessimistic_30').val(showTime( estimate_hours_pessimistic_30 ));
 
 				$('#payment').val(applyAllFees( estimate_standard ));
 				$('#payment_pessimistic').val(applyAllFees( estimate_pessimistic ));

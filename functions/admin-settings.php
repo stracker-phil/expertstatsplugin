@@ -69,6 +69,7 @@ add_action( 'load-codeable-stats_page_codeable_settings', 'codeable_load_setting
  */
 function codeable_register_settings() {
 	register_setting( 'wpcable_group', 'wpcable_fee_type' );
+	register_setting( 'wpcable_group', 'wpcable_round_estimate' );
 	register_setting( 'wpcable_group', 'wpcable_rate' );
 	register_setting( 'wpcable_group', 'wpcable_cancel_after_days' );
 	register_setting( 'wpcable_group', 'wpcable_tasks_stop_at_page' );
@@ -115,6 +116,7 @@ function codeable_settings_callback() {
 	$wpcable_email              = get_option( 'wpcable_email' );
 	$wpcable_rate               = get_option( 'wpcable_rate', 80 );
 	$wpcable_fee_type           = get_option( 'wpcable_fee_type', 'client' );
+	$wpcable_round_estimate     = get_option( 'wpcable_round_estimate', 0 );
 	$wpcable_cancel_after_days  = get_option( 'wpcable_cancel_after_days', 180 );
 	$wpcable_tasks_stop_at_page = get_option( 'wpcable_tasks_stop_at_page', 0 );
 
@@ -236,6 +238,26 @@ function codeable_settings_callback() {
 						</select>
 						<p class="description">
 							<?php esc_html_e( 'This information is used on the estimate page', 'wpcable' ); ?>
+						</p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">
+						<label class="wpcable_label" for="wpcable_round_estimate">
+							<?php esc_html_e( 'Round estimate', 'wpcable' ); ?>
+						</label>
+					</th>
+					<td>
+						<select id="wpcable_round_estimate" name="wpcable_round_estimate">
+							<option value="1" <?php selected( '1', $wpcable_round_estimate ); ?>>
+								<?php esc_html_e( 'Yes', 'wpcable' ); ?>
+							</option>
+							<option value="0" <?php selected( '0', $wpcable_round_estimate ); ?>>
+								<?php esc_html_e( 'No', 'wpcable' ); ?>
+							</option>
+						</select>
+						<p class="description">
+							<?php esc_html_e( 'Round times to nearest 5-minutes and prices to whole numbers', 'wpcable' ); ?>
 						</p>
 					</td>
 				</tr>
